@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>What Size Will They Be?</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      font-family: Arial, sans-serif;
+      background: #fffaf5;
+      color: #292522;
+    }
+    main {
+      width: min(680px, 100%);
+      background: white;
+      border: 1px solid #eadfd5;
+      border-radius: 24px;
+      padding: 40px;
+      box-shadow: 0 14px 40px rgba(60, 42, 30, 0.08);
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2rem, 6vw, 3.5rem);
+      line-height: 1;
+    }
+    .intro {
+      margin: 0 0 32px;
+      font-size: 1.1rem;
+      color: #6b625c;
+    }
+    .fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+    select, input, button {
+      width: 100%;
+      min-height: 52px;
+      border-radius: 12px;
+      font: inherit;
+    }
+    select, input {
+      border: 1px solid #cfc5bd;
+      padding: 0 14px;
+      background: white;
+    }
+    button {
+      margin-top: 22px;
+      border: 0;
+      background: #292522;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:hover { opacity: 0.9; }
+    #result {
+      display: none;
+      margin-top: 26px;
+      padding: 24px;
+      border-radius: 16px;
+      background: #fff1dc;
+      text-align: center;
+    }
+    #result.show { display: block; }
+    #sizeResult {
+      display: block;
+      margin: 8px 0;
+      font-size: 3rem;
+      font-weight: 800;
+    }
+    #detail, .note {
+      color: #6b625c;
+    }
+    .note {
+      margin: 20px 0 0;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+    @media (max-width: 560px) {
+      main { padding: 28px 22px; }
+      .fields { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>What size will they be?</h1>
+    <p class="intro">They wear this size now. What size should you buy for later?</p>
+
+    <div class="fields">
+      <div>
+        <label for="currentSize">They wear...</label>
+        <select id="currentSize">
+          <option value="">Choose a size</option>
+          <option value="3">3M</option>
+          <option value="6">6M</option>
+          <option value="9">9M</option>
+          <option value="12">12M</option>
+          <option value="18">18M</option>
+          <option value="24">24M</option>
+          <option value="30">2T</option>
+          <option value="36">3T</option>
+          <option value="48">4T</option>
+          <option value="60">5T</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="targetDate">I need it to fit in...</label>
+        <input id="targetDate" type="month" />
+      </div>
+    </div>
+
+    <button id="calculate">Tell me what size to buy</button>
+
+    <section id="result" aria-live="polite">
+      <div>Best bet:</div>
+      <span id="sizeResult"></span>
+      <div id="detail"></div>
+    </section>
+
+    <p class="note">Quick estimate only — kids and brands grow differently.</p>
+  </main>
+
+  <script>
+    const sizes = [
+      { months: 3, label: "3M" },
+      { months: 6, label: "6M" },
+      { months: 9, label: "9M" },
+      { months: 12, label: "12M" },
+      { months: 18, label: "18M" },
+      { months: 24, label: "24M" },
+      { months: 30, label: "2T" },
+      { months: 36, label: "3T" },
+      { months: 48, label: "4T" },
+      { months: 60, label: "5T" }
+    ];
+
+    const targetInput = document.getElementById("targetDate");
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    targetInput.min = currentMonth;
+
+    document.getElementById("calculate").addEventListener("click", () => {
+      const currentMonths = Number(document.getElementById("currentSize").value);
+      const targetValue = targetInput.value;
+      const result = document.getElementById("result");
+      const sizeResult = document.getElementById("sizeResult");
+      const detail = document.getElementById("detail");
+
+      if (!currentMonths || !targetValue) {
+        sizeResult.textContent = "Pick both first 🙂";
+        detail.textContent = "";
+        result.classList.add("show");
+        return;
+      }
+
+      const [targetYear, targetMonth] = targetValue.split("-").map(Number);
+      const monthsAway = (targetYear - now.getFullYear()) * 12 + (targetMonth - 1 - now.getMonth());
+      const estimatedMonths = currentMonths + monthsAway;
+      const recommendation = sizes.find(size => size.months >= estimatedMonths) || sizes[sizes.length - 1];
+      const targetLabel = new Date(targetYear, targetMonth - 1).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
+      sizeResult.textContent = recommendation.label;
+      detail.textContent = `${targetLabel} is ${monthsAway === 0 ? "this month" : `${monthsAway} month${monthsAway === 1 ? "" : "s"} away`}.`;
+      result.classList.add("show");
+    });
+  </script>
+</body>
+</html>
