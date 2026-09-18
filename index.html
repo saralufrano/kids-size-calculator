@@ -20,8 +20,9 @@
     select,input,button { width:100%; min-width:0; min-height:52px; border-radius:12px; font:inherit; }
     select,input { border:1px solid #abb7d8; padding:0 14px; background:#fff; color:#373733; }
     button { margin-top:22px; border:0; font-weight:700; cursor:pointer; }
-    #calculate { background:#d9d9d6; color:#373733; }
-    #calculate:hover,#calculate:active { background:#373733; color:white; }
+    #calculate { background:#d9d9d6; color:#373733; animation:pulse 2.2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.015); } }
+    @media (prefers-reduced-motion:reduce) { #calculate { animation:none; } }
     #result { display:none; margin-top:26px; padding:24px; border-radius:16px; background:#afdc99; text-align:center; color:#373733; }
     #result.show { display:block; }
     #sizeResult { display:block; margin:8px 0; font-size:3rem; font-weight:800; }
