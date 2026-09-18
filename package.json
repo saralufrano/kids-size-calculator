@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "web:copy": "node scripts/copy-web.mjs",
+    "assets:generate": "npx @capacitor/assets generate --assetPath assets --iconBackgroundColor '#afdc99' --iconBackgroundColorDark '#afdc99' --splashBackgroundColor '#f6fcff' --splashBackgroundColorDark '#f6fcff'",
     "cap:add:ios": "npm run web:copy && cap add ios",
     "cap:add:android": "npm run web:copy && cap add android",
     "cap:sync": "npm run web:copy && cap sync",
@@ -16,6 +17,7 @@
     "@capacitor/ios": "8.5.2"
   },
   "devDependencies": {
+    "@capacitor/assets": "3.0.14",
     "@capacitor/cli": "8.5.2"
   }
 }

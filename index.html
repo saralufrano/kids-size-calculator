@@ -22,17 +22,29 @@
     button { margin-top:22px; border:0; font-weight:700; cursor:pointer; }
     #calculate { background:#afdc99; color:#373733; animation:pulse 2.2s ease-in-out infinite; }
     @keyframes pulse { 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.015); } }
-    @media (prefers-reduced-motion:reduce) { #calculate { animation:none; } }
     #result { display:none; margin-top:26px; padding:24px; border-radius:16px; background:#afdc99; text-align:center; color:#373733; }
     #result.show { display:block; }
     #sizeResult { display:block; margin:8px 0; font-size:3rem; font-weight:800; }
     #detail,.note { color:#5f5d5b; }
     .note { margin:20px 0 0; font-size:.85rem; text-align:center; }
     .hidden { display:none; }
+    #launch { position:fixed; inset:0; z-index:99; display:grid; place-items:center; padding:28px; background:#f6fcff; color:#373733; text-align:center; transition:opacity .25s ease; }
+    #launch .mark { width:min(42vw,180px); aspect-ratio:1; margin:0 auto 30px; display:grid; place-items:center; border-radius:34px; background:#afdc99; font-size:clamp(1.6rem,8vw,2.6rem); font-weight:800; letter-spacing:-.06em; }
+    #launch h2 { margin:0 0 18px; font-size:clamp(2.5rem,11vw,4.5rem); line-height:.95; color:#373733; }
+    #launch p { margin:0; font-size:clamp(1rem,4.5vw,1.25rem); color:#5f5d5b; }
+    @media (prefers-reduced-motion:reduce) { #calculate { animation:none; } #launch { transition:none; } }
     @media (max-width:560px) { main{padding:28px 22px}.fields{grid-template-columns:1fr}.tabs{display:grid;grid-template-columns:1fr 1fr}.tab{padding:0} }
   </style>
 </head>
 <body>
+  <section id="launch" aria-hidden="true">
+    <div>
+      <div class="mark">12M → ?</div>
+      <h2>What size<br>will they be?</h2>
+      <p>Stop doing baby math in public.</p>
+    </div>
+  </section>
+
   <main>
     <h1>What size will they be?</h1>
     <p class="intro" id="intro">They wear this size now. What size should you buy for later?</p>
@@ -77,6 +89,12 @@
   </main>
 
   <script>
+    const launch=document.getElementById("launch");
+    const isNative=!!window.Capacitor?.isNativePlatform?.();
+    if(isNative){
+      setTimeout(()=>{ launch.style.opacity="0"; setTimeout(()=>launch.remove(),250); },900);
+    } else launch.remove();
+
     const sizes=[{m:3,l:"3M"},{m:6,l:"6M"},{m:9,l:"9M"},{m:12,l:"12M"},{m:18,l:"18M"},{m:24,l:"24M"},{m:30,l:"2T"},{m:36,l:"3T"},{m:48,l:"4T"},{m:60,l:"5T"}];
     const shoes=[[3,"1–2C"],[6,"2–3C"],[9,"3–4C"],[12,"4–5C"],[18,"5–6C"],[24,"6–7C"],[30,"7–8C"],[36,"8–9C"],[48,"9–10C"],[54,"10–11C"],[60,"10–12C"]];
     const now=new Date(), target=document.getElementById("targetDate"), result=document.getElementById("result"), ageSelect=document.getElementById("age");
