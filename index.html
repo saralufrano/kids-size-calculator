@@ -125,7 +125,7 @@
       {m:48,us:"4T",cm:104},
       {m:60,us:"5T",cm:110}
     ];
-    const shoes=[[3,"1–2C"],[6,"2–3C"],[9,"3–4C"],[12,"4–5C"],[18,"5–6C"],[24,"6–7C"],[30,"7–8C"],[36,"8–9C"],[48,"9–10C"],[54,"10–11C"],[60,"10–12C"]];
+    const cmSizes=[{m:3,cm:62},{m:6,cm:68},{m:9,cm:74},{m:12,cm:80},{m:18,cm:86},{m:27,cm:92},{m:36,cm:98},{m:48,cm:104},{m:60,cm:110}];\n    const shoes=[[3,"1–2C"],[6,"2–3C"],[9,"3–4C"],[12,"4–5C"],[18,"5–6C"],[24,"6–7C"],[30,"7–8C"],[36,"8–9C"],[48,"9–10C"],[54,"10–11C"],[60,"10–12C"]];
     const now=new Date();
     const target=document.getElementById("targetDate");
     const result=document.getElementById("result");
@@ -147,18 +147,26 @@
       currentSize.innerHTML="";
       currentSize.add(new Option("Choose a size",""));
 
-      sizes.forEach(size=>{
-        const label=clothesUnit==="us" ? size.us : `${size.cm} cm`;
-        currentSize.add(new Option(label,size.m));
-      });
-
-      if(previous && sizes.some(size=>String(size.m)===String(previous))){
-        currentSize.value=String(previous);
+      if(clothesUnit==="us"){
+        sizes.forEach(size=>currentSize.add(new Option(size.us,size.m)));
+        if(previous && sizes.some(size=>String(size.m)===String(previous))){
+          currentSize.value=String(previous);
+        }
+      } else {
+        cmSizes.forEach(size=>currentSize.add(new Option(`${size.cm} cm`,size.m)));
+        if(previous){
+          const previousSize=sizes.find(size=>String(size.m)===String(previous));
+          const previousCm=previousSize?.cm || cmSizes.find(size=>String(size.m)===String(previous))?.cm;
+          const match=cmSizes.find(size=>size.cm===previousCm);
+          if(match) currentSize.value=String(match.m);
+        }
       }
     }
 
     function formatSize(size,unit){
-      return unit==="cm" ? `${size.cm} cm` : size.us;
+      if(unit==="cm") return `${size.cm} cm`;
+      if(size.us) return size.us;
+      return size.m<=27?"24M / 2T":(sizes.find(s=>s.m>=size.m)||sizes.at(-1)).us;
     }
 
     populateClothingSizes();
@@ -206,7 +214,8 @@
 
         const [y,m]=value.split("-").map(Number);
         const away=(y-now.getFullYear())*12+(m-1-now.getMonth());
-        const recommended=sizes.find(s=>s.m>=current+away)||sizes.at(-1);
+        const recommendationTable=clothesUnit==="cm"?cmSizes:sizes;
+        const recommended=recommendationTable.find(s=>s.m>=current+away)||recommendationTable.at(-1);
         const alternateUnit=clothesUnit==="us"?"cm":"us";
         const dateLabel=new Date(y,m-1).toLocaleDateString("en-US",{month:"long",year:"numeric"});
 
