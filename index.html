@@ -72,7 +72,7 @@
       <span class="unit-label">What do you need?</span>
       <div class="unit-toggle" aria-label="Clothing task">
         <button class="task-btn active" data-task="future" type="button">Plan ahead</button>
-        <button class="task-btn" data-task="check" type="button">Check a size</button>
+        <button class="task-btn" data-task="check" type="button">Convert a size</button>
       </div>
     </div>
 
@@ -97,11 +97,11 @@
 
     <div id="checkFields" class="fields hidden">
       <div>
-        <label for="knownSize">They wear (US)...</label>
+        <label for="knownSize">US size</label>
         <select id="knownSize"></select>
       </div>
       <div>
-        <label for="itemCm">The item says (CM)...</label>
+        <label for="itemCm">CM size</label>
         <select id="itemCm"></select>
       </div>
     </div>
@@ -145,6 +145,7 @@
       {m:60,us:"5T",cm:110}
     ];
     const cmSizes=[{m:3,cm:62},{m:6,cm:68},{m:9,cm:74},{m:12,cm:80},{m:18,cm:86},{m:27,cm:92},{m:36,cm:98},{m:48,cm:104},{m:60,cm:110}];
+    const conversions=[{us:"3M",cm:62},{us:"6M",cm:68},{us:"9M",cm:74},{us:"12M",cm:80},{us:"18M",cm:86},{us:"24M / 2T",cm:92},{us:"3T",cm:98},{us:"4T",cm:104},{us:"5T",cm:110}];
     const shoes=[[3,"1–2C"],[6,"2–3C"],[9,"3–4C"],[12,"4–5C"],[18,"5–6C"],[24,"6–7C"],[30,"7–8C"],[36,"8–9C"],[48,"9–10C"],[54,"10–11C"],[60,"10–12C"]];
     const now=new Date();
     const target=document.getElementById("targetDate");
@@ -198,16 +199,40 @@
 
     function populateCheckSizes(){
       knownSize.innerHTML="";
-      knownSize.add(new Option("Choose their size",""));
-      sizes.forEach(size=>knownSize.add(new Option(size.us,size.m)));
+      knownSize.add(new Option("Choose a US size",""));
+      conversions.forEach(size=>knownSize.add(new Option(size.us,size.cm)));
 
       itemCm.innerHTML="";
-      itemCm.add(new Option("Choose the item size",""));
-      cmSizes.forEach(size=>itemCm.add(new Option(`${size.cm} cm`,size.cm)));
+      itemCm.add(new Option("Choose a CM size",""));
+      conversions.forEach(size=>itemCm.add(new Option(`${size.cm} cm`,size.cm)));
+    }
+
+    function showConversion(cm){
+      const match=conversions.find(size=>size.cm===Number(cm));
+      if(!match){
+        result.classList.remove("show");
+        return;
+      }
+      document.getElementById("resultLabel").textContent="Equivalent size:";
+      document.getElementById("sizeResult").textContent=`${match.us} ≈ ${match.cm} cm`;
+      document.getElementById("detail").textContent="";
+      result.classList.add("show");
     }
 
     populateClothingSizes();
     populateCheckSizes();
+
+    knownSize.onchange=()=>{
+      const cm=knownSize.value;
+      itemCm.value=cm;
+      showConversion(cm);
+    };
+
+    itemCm.onchange=()=>{
+      const cm=itemCm.value;
+      knownSize.value=cm;
+      showConversion(cm);
+    };
 
     document.querySelectorAll(".task-btn").forEach(btn=>btn.onclick=()=>{
       clothesTask=btn.dataset.task;
@@ -217,11 +242,14 @@
       document.getElementById("checkFields").classList.toggle("hidden",clothesTask!=="check");
       document.getElementById("intro").textContent=clothesTask==="future"
         ?"They wear this size now. What size should you buy for later?"
-        :"See how a cm size compares to what they wear now.";
-      document.getElementById("calculate").textContent=clothesTask==="future"?"Tell me what size to buy":"Will it fit?";
+        :"Pick either size and get the equivalent instantly.";
+      document.getElementById("calculate").classList.toggle("hidden",clothesTask==="check");
+      document.getElementById("calculate").textContent="Tell me what size to buy";
       document.getElementById("note").textContent=clothesTask==="future"
         ?"Quick estimate only — kids and brands grow differently."
-        :"Approximate conversion only — fit varies by kid and brand.";
+        :"Approximate conversion only — brands size differently.";
+      knownSize.value="";
+      itemCm.value="";
       result.classList.remove("show");
     });
 
@@ -247,16 +275,18 @@
         document.getElementById("checkFields").classList.toggle("hidden",clothesTask!=="check");
         document.getElementById("intro").textContent=clothesTask==="future"
           ?"They wear this size now. What size should you buy for later?"
-          :"See how a cm size compares to what they wear now.";
-        document.getElementById("calculate").textContent=clothesTask==="future"?"Tell me what size to buy":"Will it fit?";
+          :"Pick either size and get the equivalent instantly.";
+        document.getElementById("calculate").classList.toggle("hidden",clothesTask==="check");
+        document.getElementById("calculate").textContent="Tell me what size to buy";
         document.getElementById("note").textContent=clothesTask==="future"
           ?"Quick estimate only — kids and brands grow differently."
-          :"Approximate conversion only — fit varies by kid and brand.";
+          :"Approximate conversion only — brands size differently.";
       } else {
         document.getElementById("unitRow").classList.add("hidden");
         document.getElementById("clothesFields").classList.add("hidden");
         document.getElementById("checkFields").classList.add("hidden");
         document.getElementById("intro").textContent="How old are they? Get a starting shoe size.";
+        document.getElementById("calculate").classList.remove("hidden");
         document.getElementById("calculate").textContent="Tell me what size to try";
         document.getElementById("note").textContent="Starting point only — shoe fit varies a lot by kid and brand.";
       }
@@ -274,33 +304,6 @@
         label.textContent="Start around:";
         out.textContent=ageSelect.value!==""&&shoe?`US ${shoe[1]}`:"Choose an age first 🙂";
         detail.textContent=ageSelect.value!==""&&shoe?ageSelect.options[ageSelect.selectedIndex].text:"";
-      } else if(clothesTask==="check"){
-        const currentMonths=Number(knownSize.value);
-        const foundCm=Number(itemCm.value);
-        label.textContent="Verdict:";
-
-        if(!currentMonths||!foundCm){
-          out.textContent="Pick both first 🙂";
-          detail.textContent="";
-          result.classList.add("show");
-          return;
-        }
-
-        const currentEntry=sizes.find(size=>size.m===currentMonths);
-        const foundEntry=cmSizes.find(size=>size.cm===foundCm);
-        const foundUs=sizes.find(size=>size.cm===foundCm);
-        const diff=foundCm-currentEntry.cm;
-
-        if(diff<=-6){
-          out.textContent="Probably too small";
-        } else if(diff>=6){
-          out.textContent="Room to grow";
-        } else {
-          out.textContent="About right";
-        }
-
-        const foundUsLabel=foundCm===92?"24M / 2T":(foundUs?.us || formatSize(foundEntry,"us"));
-        detail.textContent=`${foundCm} cm ≈ ${foundUsLabel} • They wear ${currentEntry.us} ≈ ${currentEntry.cm} cm`;
       } else {
         const current=Number(currentSize.value), value=target.value;
         label.textContent="Best bet:";
