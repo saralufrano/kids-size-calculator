@@ -151,6 +151,10 @@
         sizes.forEach(size=>currentSize.add(new Option(size.us,size.m)));
         if(previous && sizes.some(size=>String(size.m)===String(previous))){
           currentSize.value=String(previous);
+        } else if(previous){
+          const previousCm=cmSizes.find(size=>String(size.m)===String(previous))?.cm;
+          const match=sizes.find(size=>size.cm===previousCm);
+          if(match) currentSize.value=String(match.m);
         }
       } else {
         cmSizes.forEach(size=>currentSize.add(new Option(`${size.cm} cm`,size.m)));
